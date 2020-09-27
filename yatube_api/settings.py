@@ -37,12 +37,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'corsheaders',
     'posts',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -81,9 +86,38 @@ DATABASES = {
     }
 }
 
+"""
+Один из принципов построения REST — отсутствие состояния (stateless). 
+Это значит, что каждый запрос к серверу должен содержать информацию о том,
+кто совершает этот запрос (информацию о пользователе). 
+Сопоставление этих данных с учетными данными на сервере 
+называется аутентификацией.
+Рассмотрим самый простой способ аутентификации — по токену.
+Для получения токена клиент посылает серверу запрос, передав логин и пароль.
+Если в базе данных существует такой пользователь и пароль совпадает, 
+то в ответ клиент получает токен. При каждом последующем запросе к API
+проводится проверка: есть ли переданный с запросом токен в базе и 
+какому пользователю он соответствует.
+Для реализации этого механизма нужно выполнить несколько действий.
+Добавить приложение 'rest_framework.authtoken' в INSTALLED_APPS
+В settings.py объявить новый способ аутентификации TokenAuthentication и,
+одновременно, запретить доступ всем неаутентифицированным пользователям,
+установив значение IsAuthenticated для ключа DEFAULT_PERMISSION_CLASSES:
+"""
+
+REST_FRAMEWORK = {        
+        'DEFAULT_PERMISSION_CLASSES': [
+            'rest_framework.permissions.IsAuthenticated', 
+        ],
+    
+        'DEFAULT_AUTHENTICATION_CLASSES': [
+            'rest_framework.authentication.TokenAuthentication',
+        ]
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -121,3 +155,8 @@ STATIC_URL = '/static/'
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+
+# Определяем порядок обработки запросов от других хостов
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_URLS_REGEX = r'^/api/.*$'
