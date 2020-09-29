@@ -6,5 +6,10 @@ class OnlyCreatorPermission(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
-            return request.user == obj.author
-        return True
+            return True
+        return request.user == obj.author
+
+    def has_permission(self, request, view):
+        if request.user.is_authenticated:
+            return True
+        return False
